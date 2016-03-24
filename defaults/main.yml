@@ -1,0 +1,9 @@
+---
+
+php_fpm_packages:
+  - php-fpm
+  - php-gd
+  - php-mysql
+  - php-pgsql
+  - php-mbstring
+  - mariadb

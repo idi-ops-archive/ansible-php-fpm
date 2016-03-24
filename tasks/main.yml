@@ -1,0 +1,61 @@
+---
+
+- name: Install packages
+  yum:
+    name: "{{ item }}"
+    state: latest
+  with_items: php_fpm_packages
+
+- name: Configure SELinux to allow php-fpm to use sendmail
+  copy:
+    src: sendmail.pp
+    dest: /tmp/sendmail.pp
+    backup: no
+
+- name: Apply SELinux policy
+  command: "/usr/sbin/semodule -i /tmp/sendmail.pp"
+
+- name: Configure PHP
+  template:
+    src: php.ini.j2
+    dest: /etc/php.ini
+    backup: no
+  notify:
+    - restart php-fpm
+
+- name: Configure SELinux to allow php-fpm to write to home directories
+  copy:
+    src: httpd.pp
+    dest: /tmp/httpd.pp
+    backup: no
+
+- name: Apply SELinux policy
+  command: "/usr/sbin/semodule -i /tmp/httpd.pp"
+
+- name: Configure php-fpm
+  template:
+    src: php-fpm.conf.j2
+    dest: /etc/php-fpm.conf
+    backup: no
+  notify:
+    - restart php-fpm
+
+- name: Remove default pool
+  file:
+    path: /etc/php-fpm.d/www.conf
+    state: absent
+  notify:
+    - restart php-fpm
+
+- name: Copy dummy pool configuration
+  copy:
+    src: dummy.conf
+    dest: /etc/php-fpm.d/dummy.conf
+  notify:
+    - restart php-fpm
+
+- name: Enable php-fpm
+  service:
+    name: php-fpm
+    enabled: yes
+    state: started
