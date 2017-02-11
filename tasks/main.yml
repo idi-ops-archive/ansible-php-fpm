@@ -4,7 +4,7 @@
   yum:
     name: "{{ item }}"
     state: latest
-  with_items: php_fpm_packages
+  with_items: '{{ php_fpm_packages }}'
 
 - name: Configure SELinux to allow php-fpm to use sendmail
   copy:
